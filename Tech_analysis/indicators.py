@@ -75,52 +75,34 @@ class SuperTrend:
         self.data['fub'] = self.data['bub']
         self.data['flb'] = self.data['blb']
         self.data['SuperTrend'] = np.nan
-        for i in range(atr_tp, len(self.data.index)):
-            if self.stock_data.loc[i - 1, 'Close'] <= self.data.loc[i - 1, 'fub']:
-                self.data.loc[i, 'fub'] = min(self.data.loc[i, 'bub'], self.data.loc[i - 1, 'fub'])
-            else:
-                self.data.loc[i, 'fub'] = self.data.loc[i, 'bub']
-        for i in range(atr_tp, len(self.data.index)):
-            if self.stock_data.loc[i - 1, 'Close'] >= self.data.loc[i - 1, 'flb']:
-                self.data.loc[i, 'flb'] = max(self.data.loc[i, 'blb'], self.data.loc[i - 1, 'flb'])
-            else:
-                self.data.loc[i, 'flb'] = self.data.loc[i, 'blb']
-        self.data['SuperTrend'] = np.nan
-        for i in self.data['SuperTrend']:
-            if self.stock_data.loc[atr_tp - 1, 'Close'] <= self.data.loc[atr_tp - 1, 'fub']:
-                self.data.loc[atr_tp - 1, 'SuperTrend'] = self.data.loc[atr_tp - 1, 'fub']
-            elif self.stock_data.loc[atr_tp - 1, 'Close'] > self.data.loc[i, 'fub']:
-                self.data.loc[atr_tp - 1, 'SuperTrend'] = self.data.loc[atr_tp - 1, 'flb']
-        for i in range(atr_tp, len(self.data.index)):
-            if self.data.loc[i - 1, 'SuperTrend'] == self.data.loc[i - 1, 'fub'] and self.stock_data.loc[i, 'Close'] <= self.data.loc[i, 'fub']:
-                self.data.loc[i, 'SuperTrend'] = self.data.loc[i, 'fub']
-            elif self.data.loc[i - 1, 'SuperTrend'] == self.data.loc[i - 1, 'fub'] and self.stock_data.loc[i, 'Close'] >= \
-                    self.data.loc[i, 'fub']:
-                self.data.loc[i, 'SuperTrend'] = self.data.loc[i, 'flb']
-            elif self.data.loc[i - 1, 'SuperTrend'] == self.data.loc[i - 1, 'flb'] and self.stock_data.loc[i, 'Close'] >= \
-                    self.data.loc[i, 'flb']:
-                self.data.loc[i, 'SuperTrend'] = self.data.loc[i, 'flb']
-            elif self.data.loc[i - 1, 'SuperTrend'] == self.data.loc[i - 1, 'flb'] and self.stock_data.loc[i, 'Close'] <= \
-                    self.data.loc[i, 'flb']:
-                self.data.loc[i, 'SuperTrend'] = self.data.loc[i, 'fub']
 
-        # for i in range(atr_tp, len(self.data.index)):
-        #     if (self.data['bub'].iloc[i] < self.data['fub'].iloc[i - 1]) and \
-        #             (self.data['Close'].iloc[i - 1] > self.data['fub'].iloc[i - 1]):
-        #         self.data['fub'].iloc[i] = self.data['bub'].iloc[i]
-        #     else:
-        #         self.data['fub'].iloc[i] = self.data['fub'].iloc[i - 1]
-        # for i in range(atr_tp, len(self.data.index)):
-        #     if (self.data['blb'].iloc[i] > self.data['flb'].shift().iloc[i]) and \
-        #             (self.data['Close'].iloc[i - 1] < self.data['flb'].iloc[i - 1]):
-        #         self.data['flb'].iloc[i] = self.data['blb'].iloc[i]
-        #     else:
-        #         self.data['flb'].iloc[i] = self.data['flb'].iloc[i - 1]
-        # for i in range(atr_tp, len(self.data.index)):
-        #     if self.data['Close'].iloc[i] <= self.data['fub'].iloc[i]:
-        #         self.data['ST'] = self.data['fub']
-        #     else:
-        #         self.data['ST'] = self.data['flb']
+        for i in range(atr_tp, len(self.data.index)):
+            if (self.data['bub'].iloc[i] < self.data['fub'].iloc[i - 1]) or (
+                    self.stock_data['Close'].iloc[i - 1] > self.data['fub'].iloc[i - 1]):
+                self.data['fub'].iloc[i] = self.data['bub'].iloc[i]
+            else:
+                self.data['fub'].iloc[i] = self.data['fub'].iloc[i - 1]
+            if (self.data['blb'].iloc[i] > self.data['flb'].iloc[i - 1]) or (
+                    self.stock_data['Close'].iloc[i - 1] < self.data['flb'].iloc[i - 1]):
+                self.data['flb'].iloc[i] = self.data['blb'].iloc[i]
+            else:
+                self.data['flb'].iloc[i] = self.data['flb'].iloc[i - 1]
+            if i == atr_tp:
+                if self.data['fub'].iloc[atr_tp] > self.stock_data['Close'].iloc[atr_tp]:
+                    self.data['SuperTrend'].iloc[atr_tp] = self.data['fub'].iloc[atr_tp]
+                else:
+                    self.data['SuperTrend'].iloc[atr_tp] = self.data['flb'].iloc[atr_tp]
+            else:
+                if self.data['SuperTrend'].iloc[i - 1] == self.data['fub'].iloc[i - 1]:
+                    if self.stock_data['Close'].iloc[i] <= self.data['fub'].iloc[i]:
+                        self.data['SuperTrend'].iloc[i] = self.data['fub'].iloc[i]
+                    else:
+                        self.data['SuperTrend'].iloc[i] = self.data['flb'].iloc[i]
+                elif self.data['SuperTrend'].iloc[i - 1] == self.data['flb'].iloc[i - 1]:
+                    if self.stock_data['Close'].iloc[i] >= self.data['flb'].iloc[i]:
+                        self.data['SuperTrend'].iloc[i] = self.data['flb'].iloc[i]
+                    else:
+                        self.data['SuperTrend'].iloc[i] = self.data['fub'].iloc[i]
 
     def plotit(self, ax):
         green = np.ma.masked_where(self.data['SuperTrend'] < self.stock_data['Close'], self.data['SuperTrend'])
@@ -152,4 +134,3 @@ class Rsi:
     def plotit(self, ax):
         ax.plot(self.stock_data['Date'].values, self.data['Rsi'].values)
         ax.xaxis_date()
-
